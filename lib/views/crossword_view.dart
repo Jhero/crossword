@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../presenters/crossword_presenter.dart';
 import '../models/crossword_model.dart';
+import '../presenters/crossword_presenter.dart';
 import '../utils/score_manager.dart';
+import '../widgets/game_action_button.dart';
+import '../widgets/game_progress_star.dart';
+import '../widgets/game_timer_display.dart';
 
 class CrosswordView extends StatefulWidget {
   final CrosswordPresenter presenter;
@@ -211,54 +214,6 @@ class _CrosswordViewState extends State<CrosswordView> {
     }
   }
 
-  Widget _buildActionButton(IconData icon, {String? badge, VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.deepOrange,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(icon, color: Colors.white, size: 24),
-          ),
-          if (badge != null)
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  badge,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
       double progress = totalCells > 0 ? correctCount / totalCells : 0;
@@ -297,80 +252,36 @@ class _CrosswordViewState extends State<CrosswordView> {
                   child: Row(
                     children: [
                       // Progress Star
-                      SizedBox(
-                        width: 56,
-                        height: 56,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: Colors.deepOrange,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(Icons.star, color: Colors.white, size: 28),
-                            ),
-                            SizedBox(
-                              width: 56,
-                              height: 56,
-                              child: CircularProgressIndicator(
-                                value: progress,
-                                strokeWidth: 4,
-                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      GameProgressStar(progress: progress),
                       
                       const Spacer(),
 
                       // Timer
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          "$minutes:$seconds",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: remainingSeconds < 60 ? Colors.red : Colors.blue.shade900,
-                          ),
-                        ),
-                      ),
+                      GameTimerDisplay(remainingSeconds: remainingSeconds),
 
                       const Spacer(),
 
                       // Action Buttons
-                      _buildActionButton(Icons.auto_fix_high, badge: "1", onTap: () {
-                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur Bantuan segera hadir!")));
-                      }),
+                      GameActionButton(
+                        icon: Icons.auto_fix_high,
+                        badge: "1",
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur Bantuan segera hadir!")));
+                        },
+                      ),
                       const SizedBox(width: 12),
-                      _buildActionButton(Icons.search, badge: "1", onTap: () {
-                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur Cari segera hadir!")));
-                      }),
+                      GameActionButton(
+                        icon: Icons.search,
+                        badge: "1",
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur Cari segera hadir!")));
+                        },
+                      ),
                       const SizedBox(width: 12),
-                      _buildActionButton(Icons.refresh, onTap: resetGame),
+                      GameActionButton(
+                        icon: Icons.refresh,
+                        onTap: resetGame,
+                      ),
                     ],
                   ),
                 ),
