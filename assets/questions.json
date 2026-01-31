@@ -35,6 +35,66 @@
           "col": 0
         }
       ]
+    },
+    {
+      "id": 3,
+      "title": "Level 3 - Matematika",
+      "questions": [
+        {
+          "number": 1,
+          "clue": "Hasil perkalian 7 x 8",
+          "answer": "56",
+          "isAcross": true,
+          "row": 2,
+          "col": 0
+        },
+        {
+          "number": 2,
+          "clue": "Hasil pembagian 24 oleh 4",
+          "answer": "6",
+          "isAcross": false,
+          "row": 2,
+          "col": 2
+        },
+        {
+          "number": 3,
+          "clue": "Hasil perkalian 5 x 6",
+          "answer": "30",
+          "isAcross": true,
+          "row": 4,
+          "col": 0
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Level 4 - Umum",
+      "questions": [
+        {
+          "number": 1,
+          "clue": "Salah satu hewan",
+          "answer": "KAMBING",
+          "isAcross": true,
+          "row": 0,
+          "col": 0
+        },
+        {
+          "number": 2,
+          "clue": "Salah satu buah",
+          "answer": "PISANG",
+          "isAcross": false,
+          "row": 0,
+          "col": 2
+        },
+        {
+          "number": 3,
+          "clue": "Salah satu buah",
+          "answer": "ANGGUR",
+          "isAcross": true,
+          "row": 6,
+          "col": 0
+        }
+      ]
     }
   ]
 }

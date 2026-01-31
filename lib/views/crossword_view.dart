@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../presenters/crossword_presenter.dart';
 import '../models/crossword_model.dart';
 import '../utils/score_manager.dart';
@@ -14,6 +15,7 @@ class CrosswordView extends StatefulWidget {
 }
 
 class _CrosswordViewState extends State<CrosswordView> {
+  final ScoreManager _scoreManager = ScoreManager();
   final Map<String, TextEditingController> controllers = {};
   final Map<String, FocusNode> focusNodes = {};
   final Map<String, Color> boxColors = {};
@@ -149,6 +151,45 @@ class _CrosswordViewState extends State<CrosswordView> {
     }
   }
 
+  void moveToPreviousCell(int row, int col) {
+    if (activeQuestion == null) return;
+
+    int prevRow = row;
+    int prevCol = col;
+
+    if (activeQuestion!.isAcross) {
+      prevCol--;
+    } else {
+      prevRow--;
+    }
+
+    // Check if prev cell is valid within the active question
+    bool isValid = false;
+    if (activeQuestion!.isAcross) {
+      if (prevCol >= activeQuestion!.col && prevCol < activeQuestion!.col + activeQuestion!.answer.length) {
+        isValid = true;
+      }
+    } else {
+      if (prevRow >= activeQuestion!.row && prevRow < activeQuestion!.row + activeQuestion!.answer.length) {
+        isValid = true;
+      }
+    }
+
+    if (isValid) {
+      String prevKey = "$prevRow-$prevCol";
+      if (focusNodes.containsKey(prevKey)) {
+        FocusScope.of(context).requestFocus(focusNodes[prevKey]);
+        // Clear the previous cell content
+        if (controllers[prevKey]!.text.isNotEmpty) {
+           controllers[prevKey]!.clear();
+           // Update color and progress since we cleared a cell
+           boxColors[prevKey] = Colors.white;
+           updateProgress();
+        }
+      }
+    }
+  }
+
   void updateProgress() {
     int count = 0;
     for (var q in widget.presenter.model.questions) {
@@ -168,6 +209,54 @@ class _CrosswordViewState extends State<CrosswordView> {
     if (correctCount == totalCells) {
       showCompletionDialog();
     }
+  }
+
+  Widget _buildActionButton(IconData icon, {String? badge, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.deepOrange,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+          if (badge != null)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  badge,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -202,205 +291,260 @@ class _CrosswordViewState extends State<CrosswordView> {
             ),
             Column(
               children: [
-                // Progress bar + Timer + Reset
-                Container(
-                  margin: const EdgeInsets.all(12.0),
-                  padding: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
+                // New Top Bar Layout
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Column(
+                      // Progress Star
+                      SizedBox(
+                        width: 56,
+                        height: 56,
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: LinearProgressIndicator(
-                                value: progress,
-                                backgroundColor: Colors.grey.shade300,
-                                color: Colors.blueAccent,
-                                minHeight: 12,
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: Colors.deepOrange,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
+                              child: const Icon(Icons.star, color: Colors.white, size: 28),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              "Progress: ${(progress * 100).toStringAsFixed(0)}%",
-                              style: const TextStyle(
-                                fontSize: 16, 
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                            SizedBox(
+                              width: 56,
+                              height: 56,
+                              child: CircularProgressIndicator(
+                                value: progress,
+                                strokeWidth: 4,
+                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: remainingSeconds < 60 ? Colors.red.shade100 : Colors.blue.shade100,
-                              borderRadius: BorderRadius.circular(16),
+                      
+                      const Spacer(),
+
+                      // Timer
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
                             ),
-                            child: Text(
-                              "$minutes:$seconds",
-                              style: TextStyle(
-                                fontSize: 20, 
-                                fontWeight: FontWeight.bold,
-                                color: remainingSeconds < 60 ? Colors.red : Colors.blue.shade900,
-                              ),
-                            ),
+                          ],
+                        ),
+                        child: Text(
+                          "$minutes:$seconds",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: remainingSeconds < 60 ? Colors.red : Colors.blue.shade900,
                           ),
-                          const SizedBox(height: 4),
-                          ElevatedButton.icon(
-                            onPressed: resetGame,
-                            icon: const Icon(Icons.refresh, size: 16),
-                            label: const Text("Reset"),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
+
+                      const Spacer(),
+
+                      // Action Buttons
+                      _buildActionButton(Icons.auto_fix_high, badge: "1", onTap: () {
+                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur Bantuan segera hadir!")));
+                      }),
+                      const SizedBox(width: 12),
+                      _buildActionButton(Icons.search, badge: "1", onTap: () {
+                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur Cari segera hadir!")));
+                      }),
+                      const SizedBox(width: 12),
+                      _buildActionButton(Icons.refresh, onTap: resetGame),
                     ],
                   ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Center(
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      itemCount: 15 * 15,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 15,
-                      ),
-                      itemBuilder: (context, index) {
-                        int row = index ~/ 15;
-                        int col = index % 15;
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return InteractiveViewer(
+                        boundaryMargin: const EdgeInsets.all(500),
+                        minScale: 0.1,
+                        maxScale: 5.0,
+                        constrained: false,
+                        child: SizedBox(
+                          width: 1000,
+                          height: 1000,
+                          child: GridView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: 15 * 15,
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 15,
+                            ),
+                              itemBuilder: (context, index) {
+                                int row = index ~/ 15;
+                                int col = index % 15;
 
-                        CrosswordQuestion? question = widget.presenter.findQuestion(row, col);
-                        bool isActive = question != null;
+                                CrosswordQuestion? question = widget.presenter.findQuestion(row, col);
+                                bool isActive = question != null;
 
-                        if (!isActive) {
-                          return Container(
-                            margin: const EdgeInsets.all(1),
-                            color: Colors.black,
-                          );
-                        }
+                                if (!isActive) {
+                                  return Container(
+                                    margin: const EdgeInsets.all(1),
+                                    color: Colors.transparent,
+                                  );
+                                }
 
-                        String key = "$row-$col";
-                        controllers.putIfAbsent(key, () => TextEditingController());
-                        focusNodes.putIfAbsent(key, () => FocusNode());
-                        boxColors.putIfAbsent(key, () => Colors.white);
-
-                        bool isHighlighted = false;
-                        if (highlightedQuestion != null) {
-                          if (highlightedQuestion!.isAcross &&
-                              highlightedQuestion!.row == row &&
-                              col >= highlightedQuestion!.col &&
-                              col < highlightedQuestion!.col + highlightedQuestion!.answer.length) {
-                            isHighlighted = true;
-                          } else if (!highlightedQuestion!.isAcross &&
-                              highlightedQuestion!.col == col &&
-                              row >= highlightedQuestion!.row &&
-                              row < highlightedQuestion!.row + highlightedQuestion!.answer.length) {
-                            isHighlighted = true;
-                          }
-                        }
-
-                        // Cek apakah kotak ini adalah awal dari sebuah kata (untuk menampilkan nomor)
-                        int? questionNumber;
-                        // Kita cari apakah ada question yang dimulai di (row, col)
-                        // Karena satu kotak bisa jadi awal dari Across dan Down, kita prioritaskan tampilkan nomor.
-                        // Biasanya nomornya sama jika memang berpotongan di awal.
-                        // Namun di data kita, number adalah properti question.
-                        
-                        // Cari question yang dimulai di sini
-                        try {
-                          var startQ = widget.presenter.model.questions.firstWhere(
-                            (q) => q.row == row && q.col == col,
-                          );
-                          questionNumber = startQ.number;
-                        } catch (_) {}
-
-                        return Container(
-                          margin: const EdgeInsets.all(1),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black54),
-                            color: isHighlighted
-                                ? Colors.blue.shade100
-                                : boxColors[key],
-                          ),
-                          child: Stack(
-                            children: [
-                              TextField(
-                                controller: controllers[key],
-                                focusNode: focusNodes[key],
-                                textAlign: TextAlign.center,
-                                maxLength: 1,
-                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                decoration: const InputDecoration(
-                                  counterText: '',
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.only(bottom: 8), 
-                                ),
-                                onTap: () {
-                                  setState(() {
-                                    activeQuestion = question;
-                                    highlightQuestion(question!);
-                                  });
-                                },
-                                onChanged: (val) {
-                                  if (val.isNotEmpty) {
-                                    String input = val.toUpperCase();
-                                    controllers[key]!.text = input;
-                                    controllers[key]!.selection = TextSelection.collapsed(offset: 1);
-
-                                    bool correct = widget.presenter.validateLetter(question!, row, col, input);
-                                    setState(() {
-                                      boxColors[key] = correct ? Colors.green.shade200 : Colors.red.shade200;
-                                      activeQuestion = question;
-                                    });
-
-                                    if (highlightedQuestion != null &&
-                                        highlightedQuestion!.number == question.number) {
-                                      moveToNextCell(question, row, col);
+                                String key = "$row-$col";
+                                controllers.putIfAbsent(key, () => TextEditingController());
+                                focusNodes.putIfAbsent(key, () {
+                                  final node = FocusNode();
+                                  node.onKeyEvent = (FocusNode node, KeyEvent event) {
+                                    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
+                                      if (controllers[key]!.text.isEmpty) {
+                                        moveToPreviousCell(row, col);
+                                        return KeyEventResult.handled;
+                                      }
                                     }
+                                    return KeyEventResult.ignored;
+                                  };
+                                  return node;
+                                });
+                                boxColors.putIfAbsent(key, () => Colors.white);
 
-                                    updateProgress();
+                                bool isHighlighted = false;
+                                if (highlightedQuestion != null) {
+                                  if (highlightedQuestion!.isAcross &&
+                                      highlightedQuestion!.row == row &&
+                                      col >= highlightedQuestion!.col &&
+                                      col < highlightedQuestion!.col + highlightedQuestion!.answer.length) {
+                                    isHighlighted = true;
+                                  } else if (!highlightedQuestion!.isAcross &&
+                                      highlightedQuestion!.col == col &&
+                                      row >= highlightedQuestion!.row &&
+                                      row < highlightedQuestion!.row + highlightedQuestion!.answer.length) {
+                                    isHighlighted = true;
                                   }
-                                },
-                              ),
-                              if (questionNumber != null)
-                                Positioned(
-                                  top: 2,
-                                  left: 4,
-                                  child: Text(
-                                    "$questionNumber",
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                }
+
+                                int? questionNumber;
+                                try {
+                                  var startQ = widget.presenter.model.questions.firstWhere(
+                                    (q) => q.row == row && q.col == col,
+                                  );
+                                  questionNumber = startQ.number;
+                                } catch (_) {}
+
+                                Color cellColor;
+                                Color textColor;
+
+                                if (boxColors[key] != Colors.white) {
+                                  cellColor = boxColors[key]!;
+                                  textColor = Colors.white;
+                                } else if (controllers[key]!.text.isNotEmpty) {
+                                  cellColor = const Color(0xFF0D47A1); // Dark Blue for filled
+                                  textColor = Colors.white;
+                                } else {
+                                  cellColor = Colors.white.withOpacity(0.8);
+                                  textColor = Colors.black;
+                                }
+
+                                return Container(
+                                  margin: const EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: isHighlighted 
+                                        ? Border.all(color: Colors.amber, width: 3) 
+                                        : null,
+                                    color: cellColor,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 4,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                            ],
+                                  child: Stack(
+                                    children: [
+                                      TextField(
+                                        controller: controllers[key],
+                                        focusNode: focusNodes[key],
+                                        textAlign: TextAlign.center,
+                                        maxLength: 1,
+                                        style: TextStyle(
+                                          fontSize: 32, 
+                                          fontWeight: FontWeight.bold,
+                                          color: textColor,
+                                        ),
+                                        decoration: const InputDecoration(
+                                          counterText: '',
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.symmetric(vertical: 10), 
+                                        ),
+                                        onTap: () {
+                                          setState(() {
+                                            activeQuestion = question;
+                                            highlightQuestion(question!);
+                                          });
+                                        },
+                                        onChanged: (val) {
+                                          if (val.isNotEmpty) {
+                                            String input = val.toUpperCase();
+                                            controllers[key]!.text = input;
+                                            controllers[key]!.selection = TextSelection.collapsed(offset: 1);
+
+                                            bool correct = widget.presenter.validateLetter(question!, row, col, input);
+                                            setState(() {
+                                              boxColors[key] = correct ? Colors.green : Colors.red;
+                                              activeQuestion = question;
+                                            });
+
+                                            if (highlightedQuestion != null &&
+                                                highlightedQuestion!.number == question.number) {
+                                              moveToNextCell(question, row, col);
+                                            }
+                                          } else {
+                                            setState(() {
+                                              boxColors[key] = Colors.white;
+                                            });
+                                          }
+                                          updateProgress();
+                                        },
+                                      ),
+                                      if (questionNumber != null)
+                                        Positioned(
+                                          top: 4,
+                                          left: 6,
+                                          child: Text(
+                                            "$questionNumber",
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: textColor == Colors.white ? Colors.white70 : Colors.black54,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         );
                       },
                     ),
-                  ),
                 ),
                 Expanded(
                 flex: 1,

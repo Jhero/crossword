@@ -17,6 +17,7 @@ class LevelView extends StatefulWidget {
 class _LevelViewState extends State<LevelView> {
   final ScoreManager _scoreManager = ScoreManager();
   Map<int, int> _scores = {};
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -66,7 +67,6 @@ class _LevelViewState extends State<LevelView> {
             ),
             ElevatedButton(
               onPressed: () {
-                // Here you would typically open the app store
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text("Terima kasih atas penilaian Anda!")),
@@ -80,189 +80,163 @@ class _LevelViewState extends State<LevelView> {
     );
   }
 
+  void _onItemTapped(int index) {
+    if (index == 2) {
+      _showRateUsDialog();
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
+  }
+
+  Widget _buildLevelGrid() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.9,
+          ),
+          itemCount: widget.data.levels.length,
+          itemBuilder: (context, index) {
+            final level = widget.data.levels[index];
+            final score = _scores[level.id] ?? 0;
+            final isCompleted = score > 0;
+
+            return Card(
+              elevation: 6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              color: Colors.white.withOpacity(0.9),
+              child: InkWell(
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CrosswordView(
+                        presenter: CrosswordPresenter(level),
+                      ),
+                    ),
+                  );
+                  if (result == true) {
+                    _loadScores();
+                  }
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isCompleted ? Colors.green.shade100 : Colors.blue.shade100,
+                      ),
+                      child: Text(
+                        "${level.id}",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: isCompleted ? Colors.green.shade900 : Colors.blue.shade900,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        level.title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (score > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          "Skor: $score",
+                          style: TextStyle(
+                            color: Colors.amber.shade900,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          "Pilih Level",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        title: Text(
+          _selectedIndex == 0 ? "Pilih Level" : "Tentang Kami",
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF1488CC), Color(0xFF2B32B2)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Icon(Icons.grid_on, color: Colors.white, size: 48),
-                  SizedBox(height: 16),
-                  Text(
-                    'TTS Crossword',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Beranda'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text('Tentang Kami'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AboutView()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.star),
-              title: const Text('Beri Nilai'),
-              onTap: () {
-                Navigator.pop(context);
-                _showRateUsDialog();
-              },
-            ),
-          ],
-        ),
+        automaticallyImplyLeading: false, // Remove back button if any
       ),
       body: Stack(
         children: [
-          // Background Gradient
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF1488CC), // Modern Blue
-                  Color(0xFF2B32B2), // Deep Purple/Blue
-                ],
-              ),
+          // Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/background.jpg',
+              fit: BoxFit.cover,
             ),
           ),
-          // Level Grid
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 0.9, // Adjusted for score text
-                ),
-                itemCount: widget.data.levels.length,
-                itemBuilder: (context, index) {
-                  final level = widget.data.levels[index];
-                  final score = _scores[level.id] ?? 0;
-                  final isCompleted = score > 0;
-
-                  return Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    color: Colors.white.withOpacity(0.9),
-                    child: InkWell(
-                      onTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CrosswordView(
-                              presenter: CrosswordPresenter(level),
-                            ),
-                          ),
-                        );
-                        if (result == true) {
-                          _loadScores();
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isCompleted ? Colors.green.shade100 : Colors.blue.shade100,
-                            ),
-                            child: Text(
-                              "${level.id}",
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: isCompleted ? Colors.green.shade900 : Colors.blue.shade900,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text(
-                              level.title,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          if (score > 0)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.amber.shade100,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                "Skor: $score",
-                                style: TextStyle(
-                                  color: Colors.amber.shade900,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+          // Content
+          _selectedIndex == 0 ? _buildLevelGrid() : const SafeArea(child: AboutView()),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Beranda',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.info),
+            label: 'Tentang',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.star),
+            label: 'Beri Nilai',
           ),
         ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: const Color(0xFF2B32B2),
+        unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
+        backgroundColor: Colors.white,
+        elevation: 10,
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
