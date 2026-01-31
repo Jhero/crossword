@@ -1,0 +1,40 @@
+{
+  "levels": [
+    {
+      "id": 1,
+      "title": "Level 1 - Dasar",
+      "questions": [
+        {
+          "number": 1,
+          "clue": "Ibukota Indonesia",
+          "answer": "JAKARTA",
+          "isAcross": true,
+          "row": 0,
+          "col": 0
+        },
+        {
+          "number": 2,
+          "clue": "Bahasa pemrograman Flutter",
+          "answer": "DART",
+          "isAcross": false,
+          "row": 0,
+          "col": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Level 2 - Geografi",
+      "questions": [
+        {
+          "number": 1,
+          "clue": "Gunung tertinggi di dunia",
+          "answer": "EVEREST",
+          "isAcross": true,
+          "row": 2,
+          "col": 0
+        }
+      ]
+    }
+  ]
+}
