@@ -24,6 +24,8 @@ class _CrosswordViewState extends State<CrosswordView> {
   final Map<String, Color> boxColors = {};
   CrosswordQuestion? highlightedQuestion;
   CrosswordQuestion? activeQuestion;
+  int? selectedRow;
+  int? selectedCol;
   int correctCount = 0;
   int totalCells = 0;
 
@@ -109,6 +111,143 @@ class _CrosswordViewState extends State<CrosswordView> {
           ],
         );
       },
+    );
+  }
+
+  void _handleVirtualKeyTap(String letter) {
+    if (selectedRow == null || selectedCol == null) return;
+    final row = selectedRow!;
+    final col = selectedCol!;
+    final key = "$row-$col";
+
+    CrosswordQuestion? question = widget.presenter.findQuestion(row, col);
+    if (question == null) return;
+
+    final input = letter.toUpperCase();
+
+    setState(() {
+      controllers[key]?.text = input;
+      bool correct = widget.presenter.validateLetter(question, row, col, input);
+      boxColors[key] = correct ? Colors.green : Colors.red;
+      activeQuestion = question;
+    });
+
+    if (highlightedQuestion != null &&
+        highlightedQuestion!.number == question.number) {
+      if (question.isAcross) {
+        int nextCol = col + 1;
+        if (nextCol < question.col + question.answer.length) {
+          setState(() {
+            selectedRow = row;
+            selectedCol = nextCol;
+          });
+        }
+      } else {
+        int nextRow = row + 1;
+        if (nextRow < question.row + question.answer.length) {
+          setState(() {
+            selectedRow = nextRow;
+            selectedCol = col;
+          });
+        }
+      }
+    }
+
+    updateProgress();
+  }
+
+  void _handleBackspace() {
+    if (selectedRow == null || selectedCol == null) return;
+    final row = selectedRow!;
+    final col = selectedCol!;
+    final key = "$row-$col";
+
+    if ((controllers[key]?.text.isNotEmpty ?? false)) {
+      setState(() {
+        controllers[key]?.clear();
+        boxColors[key] = Colors.white;
+      });
+      updateProgress();
+      return;
+    }
+
+    CrosswordQuestion? question = widget.presenter.findQuestion(row, col);
+    if (question == null) return;
+
+    if (question.isAcross) {
+      int prevCol = col - 1;
+      if (prevCol >= question.col) {
+        final prevKey = "$row-$prevCol";
+        setState(() {
+          selectedRow = row;
+          selectedCol = prevCol;
+          controllers[prevKey]?.clear();
+          boxColors[prevKey] = Colors.white;
+        });
+        updateProgress();
+      }
+    } else {
+      int prevRow = row - 1;
+      if (prevRow >= question.row) {
+        final prevKey = "$prevRow-$col";
+        setState(() {
+          selectedRow = prevRow;
+          selectedCol = col;
+          controllers[prevKey]?.clear();
+          boxColors[prevKey] = Colors.white;
+        });
+        updateProgress();
+      }
+    }
+  }
+
+  Widget _buildKeyboardButton(String label, {VoidCallback? onTap}) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+        child: SizedBox(
+          height: 36,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.zero,
+              backgroundColor: const Color(0xFF1488CC),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: onTap ?? () => _handleVirtualKeyTap(label),
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVirtualKeyboard() {
+    const row1 = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
+    const row2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
+    const row3 = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      color: Colors.white.withOpacity(0.9),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(children: row1.map((e) => _buildKeyboardButton(e)).toList()),
+          Row(children: row2.map((e) => _buildKeyboardButton(e)).toList()),
+          Row(
+            children: [
+              ...row3.map((e) => _buildKeyboardButton(e)),
+              _buildKeyboardButton(
+                '⌫',
+                onTap: _handleBackspace,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -221,6 +360,7 @@ class _CrosswordViewState extends State<CrosswordView> {
       String seconds = (remainingSeconds % 60).toString().padLeft(2, '0');
 
       return Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(widget.presenter.model.title),
           leading: IconButton(
@@ -289,19 +429,14 @@ class _CrosswordViewState extends State<CrosswordView> {
                   flex: 2,
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      return InteractiveViewer(
-                        boundaryMargin: const EdgeInsets.all(500),
-                        minScale: 0.1,
-                        maxScale: 5.0,
-                        constrained: false,
-                        child: SizedBox(
-                          width: 1000,
-                          height: 1000,
+                      return Center(
+                        child: AspectRatio(
+                          aspectRatio: 1,
                           child: GridView.builder(
-                            physics: const NeverScrollableScrollPhysics(),
                             itemCount: 15 * 15,
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 15,
+                              childAspectRatio: 0.66,
                             ),
                               itemBuilder: (context, index) {
                                 int row = index ~/ 15;
@@ -313,7 +448,7 @@ class _CrosswordViewState extends State<CrosswordView> {
                                 if (!isActive) {
                                   return Container(
                                     margin: const EdgeInsets.all(1),
-                                    color: Colors.transparent,
+                                    color: const Color(0xFF20262B),
                                   );
                                 }
 
@@ -364,28 +499,21 @@ class _CrosswordViewState extends State<CrosswordView> {
                                   cellColor = boxColors[key]!;
                                   textColor = Colors.white;
                                 } else if (controllers[key]!.text.isNotEmpty) {
-                                  cellColor = const Color(0xFF0D47A1); // Dark Blue for filled
+                                  cellColor = const Color(0xFF0D47A1);
                                   textColor = Colors.white;
                                 } else {
-                                  cellColor = Colors.white.withOpacity(0.8);
+                                  cellColor = Colors.white;
                                   textColor = Colors.black;
                                 }
 
                                 return Container(
-                                  margin: const EdgeInsets.all(2),
+                                  margin: const EdgeInsets.all(1),
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: isHighlighted 
-                                        ? Border.all(color: Colors.amber, width: 3) 
-                                        : null,
+                                    border: Border.all(
+                                      color: isHighlighted ? Colors.pinkAccent : const Color(0xFF20262B),
+                                      width: 1,
+                                    ),
                                     color: cellColor,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 4,
-                                        offset: const Offset(2, 2),
-                                      ),
-                                    ],
                                   ),
                                   child: Stack(
                                     children: [
@@ -394,54 +522,35 @@ class _CrosswordViewState extends State<CrosswordView> {
                                         focusNode: focusNodes[key],
                                         textAlign: TextAlign.center,
                                         maxLength: 1,
+                                        readOnly: true,
+                                        showCursor: false,
                                         style: TextStyle(
-                                          fontSize: 32, 
+                                          fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                           color: textColor,
                                         ),
                                         decoration: const InputDecoration(
                                           counterText: '',
                                           border: InputBorder.none,
-                                          contentPadding: EdgeInsets.symmetric(vertical: 10), 
+                                          contentPadding: EdgeInsets.zero,
                                         ),
                                         onTap: () {
                                           setState(() {
+                                            selectedRow = row;
+                                            selectedCol = col;
                                             activeQuestion = question;
                                             highlightQuestion(question!);
                                           });
                                         },
-                                        onChanged: (val) {
-                                          if (val.isNotEmpty) {
-                                            String input = val.toUpperCase();
-                                            controllers[key]!.text = input;
-                                            controllers[key]!.selection = TextSelection.collapsed(offset: 1);
-
-                                            bool correct = widget.presenter.validateLetter(question!, row, col, input);
-                                            setState(() {
-                                              boxColors[key] = correct ? Colors.green : Colors.red;
-                                              activeQuestion = question;
-                                            });
-
-                                            if (highlightedQuestion != null &&
-                                                highlightedQuestion!.number == question.number) {
-                                              moveToNextCell(question, row, col);
-                                            }
-                                          } else {
-                                            setState(() {
-                                              boxColors[key] = Colors.white;
-                                            });
-                                          }
-                                          updateProgress();
-                                        },
                                       ),
                                       if (questionNumber != null)
                                         Positioned(
-                                          top: 4,
-                                          left: 6,
+                                          top: 1,
+                                          left: 1,
                                           child: Text(
                                             "$questionNumber",
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 8,
                                               fontWeight: FontWeight.bold,
                                               color: textColor == Colors.white ? Colors.white70 : Colors.black54,
                                             ),
@@ -457,6 +566,7 @@ class _CrosswordViewState extends State<CrosswordView> {
                       },
                     ),
                 ),
+                _buildVirtualKeyboard(),
                 Expanded(
                 flex: 1,
                 child: Container(
