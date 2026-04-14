@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import '../models/crossword_model.dart';
 import 'level_view.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -18,23 +16,11 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _loadDataAndNavigate() async {
-    // Simulate a minimum splash time
     await Future.delayed(const Duration(seconds: 2));
-
-    // Load data
-    try {
-      String jsonStr = await rootBundle.loadString('assets/questions.json');
-      CrosswordData data = CrosswordData.fromJson(jsonStr);
-
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => LevelView(data: data)),
-        );
-      }
-    } catch (e) {
-      // Handle error (optional)
-      debugPrint("Error loading data: $e");
-    }
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const LevelView()),
+    );
   }
 
   @override
@@ -56,11 +42,11 @@ class _SplashScreenState extends State<SplashScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withAlpha(230),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withAlpha(51),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),

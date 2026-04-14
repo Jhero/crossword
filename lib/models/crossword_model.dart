@@ -7,6 +7,7 @@ class CrosswordQuestion {
   final bool isAcross;
   final int row;
   final int col;
+  final int? levelId;
 
   CrosswordQuestion({
     required this.number,
@@ -15,6 +16,7 @@ class CrosswordQuestion {
     required this.isAcross,
     required this.row,
     required this.col,
+    this.levelId,
   });
 
   factory CrosswordQuestion.fromJson(Map<String, dynamic> json) {
@@ -25,6 +27,19 @@ class CrosswordQuestion {
       isAcross: json['isAcross'],
       row: json['row'],
       col: json['col'],
+    );
+  }
+
+  factory CrosswordQuestion.fromApiJson(Map<String, dynamic> json) {
+    final dynamic isAcrossRaw = json['isAcross'] ?? json['is_across'];
+    return CrosswordQuestion(
+      number: json['number'],
+      clue: json['clue'],
+      answer: json['answer'],
+      isAcross: isAcrossRaw == true || isAcrossRaw == 1,
+      row: json['row'],
+      col: json['col'],
+      levelId: json['level_id'],
     );
   }
 }
@@ -43,6 +58,14 @@ class LevelModel {
       questions: (json['questions'] as List)
           .map((q) => CrosswordQuestion.fromJson(q))
           .toList(),
+    );
+  }
+
+  factory LevelModel.fromApiJson(Map<String, dynamic> json) {
+    return LevelModel(
+      id: json['id'],
+      title: json['name'] ?? json['title'],
+      questions: const [],
     );
   }
 }

@@ -18,7 +18,6 @@ class CrosswordView extends StatefulWidget {
 }
 
 class _CrosswordViewState extends State<CrosswordView> {
-  final ScoreManager _scoreManager = ScoreManager();
   final Map<String, TextEditingController> controllers = {};
   final Map<String, FocusNode> focusNodes = {};
   final Map<String, Color> boxColors = {};
@@ -231,7 +230,7 @@ class _CrosswordViewState extends State<CrosswordView> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      color: Colors.white.withOpacity(0.9),
+      color: Colors.white.withAlpha(230),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -356,8 +355,6 @@ class _CrosswordViewState extends State<CrosswordView> {
   @override
   Widget build(BuildContext context) {
       double progress = totalCells > 0 ? correctCount / totalCells : 0;
-      String minutes = (remainingSeconds ~/ 60).toString().padLeft(2, '0');
-      String seconds = (remainingSeconds % 60).toString().padLeft(2, '0');
 
       return Scaffold(
         resizeToAvoidBottomInset: false,
@@ -539,7 +536,7 @@ class _CrosswordViewState extends State<CrosswordView> {
                                             selectedRow = row;
                                             selectedCol = col;
                                             activeQuestion = question;
-                                            highlightQuestion(question!);
+                                            highlightQuestion(question);
                                           });
                                         },
                                       ),
@@ -571,7 +568,7 @@ class _CrosswordViewState extends State<CrosswordView> {
                 flex: 1,
                 child: Container(
                   padding: const EdgeInsets.all(8),
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withAlpha(230),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -591,7 +588,7 @@ class _CrosswordViewState extends State<CrosswordView> {
                                   return GestureDetector(
                                     onTap: () => highlightQuestion(q),
                                     child: Container(
-                                      color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.transparent,
+                                      color: isSelected ? Colors.blue.withAlpha(51) : Colors.transparent,
                                       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
                                       child: Text(
                                         "${q.number}. ${q.clue}",
@@ -624,7 +621,7 @@ class _CrosswordViewState extends State<CrosswordView> {
                                   return GestureDetector(
                                     onTap: () => highlightQuestion(q),
                                     child: Container(
-                                      color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.transparent,
+                                      color: isSelected ? Colors.blue.withAlpha(51) : Colors.transparent,
                                       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
                                       child: Text(
                                         "${q.number}. ${q.clue}",

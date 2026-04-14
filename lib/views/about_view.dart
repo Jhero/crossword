@@ -13,7 +13,7 @@ class AboutView extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          color: Colors.white.withOpacity(0.95),
+          color: Colors.white.withAlpha(242),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(

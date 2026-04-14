@@ -25,7 +25,7 @@ class GameProgressStar extends StatelessWidget {
               border: Border.all(color: Colors.white, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withAlpha(51),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),

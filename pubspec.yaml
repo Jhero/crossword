@@ -61,6 +61,7 @@ flutter:
   assets:
     - assets/questions.json
     - assets/background.jpg
+    - .env
 
 flutter_icons:
   android: true
