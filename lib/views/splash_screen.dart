@@ -34,48 +34,21 @@ class _SplashScreenState extends State<SplashScreen> {
               fit: BoxFit.cover,
             ),
           ),
+          Positioned.fill(
+            child: Container(
+              color: const Color(0xFF0B2156).withAlpha(95),
+            ),
+          ),
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon or Logo
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(230),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(51),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.grid_on,
-                    size: 80,
-                    color: Color(0xFF2B32B2),
-                  ),
+                Image.asset(
+                  'assets/splash_art.png',
+                  width: 320,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  "TTS Crossword",
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.5,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 10.0,
-                        color: Colors.black,
-                        offset: Offset(2.0, 2.0),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
                 const CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),

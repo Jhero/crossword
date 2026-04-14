@@ -76,8 +76,8 @@ class _CrosswordViewState extends State<CrosswordView> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Selamat!"),
-          content: Text("Semua jawaban benar 🎉\nSkor Anda: $score"),
+          title: const Text("Congratulations!"),
+          content: Text("All answers are correct 🎉\nYour score: $score"),
           actions: [
             TextButton(
               onPressed: () {
@@ -97,15 +97,15 @@ class _CrosswordViewState extends State<CrosswordView> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Waktu Habis ⏰"),
-          content: const Text("Sayang sekali, waktu permainan sudah habis."),
+          title: const Text("Time's Up ⏰"),
+          content: const Text("The game time has run out."),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 resetGame();
               },
-              child: const Text("Mulai Ulang"),
+              child: const Text("Restart"),
             ),
           ],
         );
@@ -368,17 +368,14 @@ class _CrosswordViewState extends State<CrosswordView> {
         body: Stack(
           children: [
             Positioned.fill(
+              child: Image.asset(
+                'assets/background.jpg',
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned.fill(
               child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF1488CC), // Modern Blue
-                      Color(0xFF2B32B2), // Deep Purple/Blue
-                    ],
-                  ),
-                ),
+                color: const Color(0xFF173A8C).withAlpha(135),
               ),
             ),
             Column(
@@ -403,7 +400,7 @@ class _CrosswordViewState extends State<CrosswordView> {
                         icon: Icons.auto_fix_high,
                         badge: "1",
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur Bantuan segera hadir!")));
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Hint feature coming soon!")));
                         },
                       ),
                       const SizedBox(width: 12),
@@ -411,7 +408,7 @@ class _CrosswordViewState extends State<CrosswordView> {
                         icon: Icons.search,
                         badge: "1",
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur Cari segera hadir!")));
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Search feature coming soon!")));
                         },
                       ),
                       const SizedBox(width: 12),
@@ -577,7 +574,7 @@ class _CrosswordViewState extends State<CrosswordView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              "MENDATAR",
+                              "ACROSS",
                               style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
                             ),
                             const Divider(),
@@ -610,7 +607,7 @@ class _CrosswordViewState extends State<CrosswordView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              "MENURUN",
+                              "DOWN",
                               style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
                             ),
                             const Divider(),

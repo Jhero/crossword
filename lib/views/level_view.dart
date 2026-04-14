@@ -251,11 +251,11 @@ class _LevelViewState extends State<LevelView> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Beri Nilai Kami"),
+          title: const Text("Rate Us"),
           content: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Apakah Anda menyukai aplikasi ini?"),
+              Text("Do you enjoy this app?"),
               SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -272,16 +272,16 @@ class _LevelViewState extends State<LevelView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Nanti Saja"),
+              child: const Text("Later"),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Terima kasih atas penilaian Anda!")),
+                  const SnackBar(content: Text("Thanks for your rating!")),
                 );
               },
-              child: const Text("Beri Bintang 5"),
+              child: const Text("Give 5 Stars"),
             ),
           ],
         );
@@ -324,7 +324,7 @@ class _LevelViewState extends State<LevelView> {
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: _fetchLevels,
-                  child: const Text("Coba Lagi"),
+                  child: const Text("Try Again"),
                 ),
               ],
             ),
@@ -372,7 +372,7 @@ class _LevelViewState extends State<LevelView> {
                         _loadingLevelId = null;
                       });
                       messenger.showSnackBar(
-                        const SnackBar(content: Text("Soal belum tersedia untuk level ini.")),
+                        const SnackBar(content: Text("No questions available for this level yet.")),
                       );
                       return;
                     }
@@ -403,7 +403,7 @@ class _LevelViewState extends State<LevelView> {
                       _loadingLevelId = null;
                     });
                     messenger.showSnackBar(
-                      SnackBar(content: Text("Gagal memuat soal: $e")),
+                      SnackBar(content: Text("Failed to load questions: $e")),
                     );
                   }
                 },
@@ -461,7 +461,7 @@ class _LevelViewState extends State<LevelView> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          "Skor: $score",
+                          "Score: $score",
                           style: TextStyle(
                             color: Colors.amber.shade900,
                             fontWeight: FontWeight.bold,
@@ -484,7 +484,7 @@ class _LevelViewState extends State<LevelView> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          _selectedIndex == 0 ? "Pilih Level" : "Tentang Kami",
+          _selectedIndex == 0 ? "Select Level" : "About Us",
           style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: Colors.transparent,
@@ -510,15 +510,15 @@ class _LevelViewState extends State<LevelView> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Beranda',
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.info),
-            label: 'Tentang',
+            label: 'About',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.star),
-            label: 'Beri Nilai',
+            label: 'Rate',
           ),
         ],
         currentIndex: _selectedIndex,

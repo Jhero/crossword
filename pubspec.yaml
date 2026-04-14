@@ -61,6 +61,7 @@ flutter:
   assets:
     - assets/questions.json
     - assets/background.jpg
+    - assets/splash_art.png
     - .env
 
 flutter_icons:

@@ -26,7 +26,7 @@ class AboutView extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  "TTS Crossword",
+                  "Crossword",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -35,7 +35,7 @@ class AboutView extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  "Versi 1.0.0",
+                  "Version 1.0.0",
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey,
@@ -43,7 +43,7 @@ class AboutView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  "Aplikasi Teka Teki Silang sederhana yang dibuat untuk mengasah otak dan menambah wawasan Anda.\n\nSelamat bermain!",
+                  "A simple crossword puzzle app designed to train your brain and expand your knowledge.\n\nEnjoy the game!",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
